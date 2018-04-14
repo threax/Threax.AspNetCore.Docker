@@ -16,11 +16,19 @@ namespace Threax.AspNetCore.Docker.Certs
         /// or not. If run outside of a container this will likely always return false unless the
         /// app can manage to run update-ca-certificates on your system.
         /// </summary>
-        public static bool LoadTrustedRoots()
+        public static bool LoadTrustedRoots(Action<CertManagerOptions> configure)
         {
+            var options = new CertManagerOptions();
+            configure?.Invoke(options);
+
+            if (!options.LoadCerts)
+            {
+                return true;
+            }
+
             try
             {
-                var process = System.Diagnostics.Process.Start("update-ca-certificates");
+                var process = System.Diagnostics.Process.Start(options.FileName);
                 process.WaitForExit();
                 return true;
             }
